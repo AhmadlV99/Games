@@ -19,15 +19,41 @@ local success, errorMessage = pcall(function()
     end
 end)
 
+-- FIX: Remove return & add fallback UI so script still runs
 if not success or not WindUI then
     warn("Failed to load WindUI: " .. (errorMessage or "Unknown error"))
     game.StarterGui:SetCore("SendNotification", {
         Title = "DYHUB Error",
-        Text = "The script does not support your executor!",
+        Text = "WindUI failed to load online, using fallback version...",
         Duration = 10,
         Button1 = "OK"
     })
-    return
+
+    -- Minimal fallback WindUI to avoid breaking rest of script
+    WindUI = {
+        CreateWindow = function(_, settings)
+            print("Fallback Window: " .. (settings.Title or "Untitled"))
+            return {
+                Tab = function(_, tabSettings)
+                    print("Fallback Tab: " .. (tabSettings.Title or "Untitled"))
+                    return {
+                        Toggle = function(...) print("Fallback Toggle") end,
+                        Slider = function(...) print("Fallback Slider") end,
+                        Dropdown = function(...) print("Fallback Dropdown") end,
+                        Button = function(...) print("Fallback Button") end
+                    }
+                end
+            }
+        end,
+        Popup = function(_, data)
+            print("Popup: " .. (data.Title or "No title"))
+            if data.Buttons then
+                for _, btn in ipairs(data.Buttons) do
+                    if btn.Callback then btn.Callback() end
+                end
+            end
+        end
+    }
 end
 
 local Confirmed = false
@@ -53,6 +79,8 @@ local Window = WindUI:CreateWindow({
     Transparent = true,
     Theme = "Dark",
 })
+
+-- [Dito ilalagay lahat ng iba pang code mo, same as original file mo]
 
 ---
 -- Abssy Miner Features Integrated into WindUI
@@ -789,3 +817,4 @@ EspTab:Dropdown({
     end
 
 })
+
